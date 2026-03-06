@@ -51,6 +51,7 @@ SOURCES = [
     Path.home() / "memory" / "diario",
     Path.home() / "memory" / "MEMORY.md",
     Path.home() / "memory" / "projetos",
+    Path.home() / "llm-library",
 ]
 
 
@@ -70,10 +71,12 @@ def get_embedding(text: str) -> list[float]:
     return resp.json()["embedding"]
 
 
-def extract_date_from_diary(path: Path) -> str | None:
-    """Extrai data de um ficheiro de diario (ex: 2026-02-08.md)."""
+def extract_date(path: Path) -> str:
+    """Data do ficheiro: nome (YYYY-MM-DD.md) ou mtime como fallback."""
     m = re.match(r"(\d{4}-\d{2}-\d{2})", path.stem)
-    return m.group(1) if m else None
+    if m:
+        return m.group(1)
+    return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d")
 
 
 def extract_concepts(text: str, top_n: int = 15) -> list[str]:
@@ -97,13 +100,13 @@ def extract_concepts(text: str, top_n: int = 15) -> list[str]:
 
 
 def collect_files() -> list[Path]:
-    """Recolhe todos os ficheiros .md das fontes."""
+    """Recolhe todos os ficheiros .md das fontes (recursivo em diretorios)."""
     files = []
     for source in SOURCES:
         if source.is_file():
             files.append(source)
         elif source.is_dir():
-            files.extend(sorted(source.glob("*.md")))
+            files.extend(sorted(source.rglob("*.md")))
     return files
 
 
@@ -227,7 +230,7 @@ def ingest_file(
     if not text.strip():
         return False
 
-    date = extract_date_from_diary(path)
+    date = extract_date(path)
     source_label = path.parent.name + "/" + path.name
 
     # Limpar entradas antigas

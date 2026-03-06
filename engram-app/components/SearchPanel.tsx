@@ -45,10 +45,7 @@ export default function SearchPanel({ selectedNode }: { selectedNode: SelectedNo
   return (
     <div className="flex flex-col h-full bg-gray-900 text-gray-100 overflow-hidden">
       {/* header */}
-      <div className="p-4 border-b border-gray-800">
-        <h1 className="text-lg font-semibold tracking-tight mb-3">
-          <span className="text-emerald-400">Engram</span>
-        </h1>
+      <div className="p-3 border-b border-gray-800">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
             value={query}
